@@ -1,0 +1,13 @@
+# The harness binary this plugin runs (D117). `bin/harness.sh` and `bin/harness.ps1`
+# download ai2rules-harness-<platform>-<version>.tgz from registry.npmjs.org and
+# refuse it unless its SHA-512 (hex) is the one below. The hash comes from this
+# file, not from the registry it checks.
+#
+# `pending` means the version this plugin needs is not on npm yet: the bootstrap
+# then asks for AI2RULES_HARNESS (a local build). After a release is published,
+# `scripts/pin-plugin-binaries.sh <version>` fills this file in.
+version 0.9.0
+linux-x64 594590dd1b22c380d389210d09ed047fd81a88dc608ad91dbbc39a050e4b8748e944c6a10ca84def63516b7f7200c28dc82f6ebb660828582b37de067f9cf9ba
+darwin-x64 8e35cfbe7eac35ed23317469433de2a5186e4eaeb30f0e0f144d754bd578835783c8329425bcd139870e2043ed3cfeb0d75d6768c2c5b77b18c248d5a4b8ee5a
+darwin-arm64 95457a75dce273e4312389782d7020323c769af22705db8b998fbd9598d53b0f88b47257fea74dbd12b65170b08ca3cf79a997e9017a0a6d63c0707820033a3c
+windows-x64 a2b9ebc7db57e7b70738cdbdcfd267c8c0eb3448a1c902f4c948543a82a7488f900bc7e49eaf062f1ac0cddd0ac748da1c527291940b6bea6a50a11dec07629c

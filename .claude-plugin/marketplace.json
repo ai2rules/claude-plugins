@@ -1,5 +1,5 @@
 {
-  "name": "ai2rules",
+  "name": "ai2rules-next",
   "owner": { "name": "ai2rules", "url": "https://ai2rules.dev" },
   "description": "Deterministic governance for AI agents: audit what your agents did, then put a seatbelt on them.",
   "plugins": [

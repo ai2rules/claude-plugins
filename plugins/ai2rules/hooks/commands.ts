@@ -1,14 +1,20 @@
 import type { Register } from 'claude-code'
 
+// The plugin's one hooks module (Claude Code takes one per plugin): it answers
+// two of the plugin's commands itself, with no model turn, and hooks no tool
+// call, so the plugin still ships no tool hook (D117).
+//
 // `/ai2rules:about` (AI2-240, D125): what is installed and where ai2rules is
-// configured, shown with no model turn. A Claude Code mod answers the command
-// itself; the facts come from `harness guard about`, run through the same
+// configured. The facts come from `harness guard about`, run through the same
 // bootstrap as every other command, so this file holds no logic of its own.
 //
-// It hooks no tool call: the plugin still ships no tool hook (D117). Where mods
-// do not run (Claude Code before 2.1.287, `disableAllHooks`, a folder not yet
-// trusted, an organisation that allows only managed mods), the skill of the
-// same name in `skills/about/` answers instead, with a model turn.
+// `/ai2rules:help` (AI2-246): the plugin's commands on one page. Fixed text:
+// it runs nothing.
+//
+// Where mods do not run (Claude Code before 2.1.287, `disableAllHooks`, a folder
+// not yet trusted, an organisation that allows only managed mods), the skills of
+// the same names in `skills/about/` and `skills/help/` answer instead, with a
+// model turn.
 //
 // No escaped backslash in this file: Claude Code 2.1.318's module parser reads
 // one inside a string literal as an unterminated string, and refuses the module.
@@ -35,6 +41,45 @@ const fenced = (lead: string, s: string): string => {
 
 const LEAD = 'what is installed and where it is configured:'
 
+// The help page. A test keeps the page in `skills/help/SKILL.md` equal to it and
+// fails when a command of the plugin is missing from it. No single quote inside
+// a line: the test reads the lines as plain single-quoted strings.
+// help:begin
+const PAGE = [
+  '/ai2rules:audit [folders] [--project DIR]',
+  '    Read the Claude Code history and settings of this machine and write a',
+  '    local HTML report: what the agents did, what a governance kernel would',
+  '    have asked or refused, risky settings, and secrets in past sessions',
+  '    (their kind and place, never their values). It changes nothing else.',
+  '',
+  '/ai2rules:guard observe | seatbelt | off',
+  '    Turn the guard on or off for every Claude Code session on this machine.',
+  '      observe   log every decision; block nothing',
+  '      seatbelt  ask before what cannot be undone: a push, a delete, a',
+  '                credential read, a CI definition, a shell send (curl, scp)',
+  '      off       remove the hook; the log is kept',
+  '    A change applies to sessions started after it.',
+  '',
+  '/ai2rules:status',
+  '    Prove whether the guard is live in this session, and show its recent',
+  '    decisions.',
+  '',
+  '/ai2rules:about',
+  '    What is installed and where ai2rules is configured: versions, the',
+  '    binary, the guard mode, the settings files, the decision logs.',
+  '',
+  '/ai2rules:help',
+  '    This page.',
+  '',
+  'A usual start: audit, then guard observe, then status in a new session.',
+  'Everything runs on this machine. The only network access is the download',
+  'of the pinned harness binary from registry.npmjs.org: on the first run, and',
+  'again when a plugin update pins another version.',
+  'More: https://github.com/ai2rules/claude-plugins',
+]
+// help:end
+const HELP_LEAD = 'the commands of this plugin:'
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     try {
@@ -47,7 +92,19 @@ export const register: Register = on => {
       // The skill of the same name already lists the command; the hook below
       // still answers it.
     }
+    try {
+      await $.command.register({
+        name: 'ai2rules:help',
+        description: 'List the commands of the ai2rules plugin and what each one does. No model turn.',
+      })
+    } catch {
+      // As above: the skill lists it, the hook below answers it.
+    }
     return next(e)
+  })
+
+  on('command.run', { command: 'ai2rules:help' }, async () => {
+    return { text: fenced(HELP_LEAD, PAGE.join(NL)) }
   })
 
   on('command.run', { command: 'ai2rules:about' }, async $ => {

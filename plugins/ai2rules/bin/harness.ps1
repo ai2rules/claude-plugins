@@ -2,7 +2,9 @@
 # pinned `harness` binary, installing it first if it is not there. Same order as
 # harness.sh beside it:
 #
-#   1. AI2RULES_HARNESS, when it names a file: used as is.
+#   1. AI2RULES_HARNESS_FOR_PLUGIN, else AI2RULES_HARNESS, when it names a file:
+#      used as is. The first is read by the plugin alone; the second is also the
+#      pin a project's hook shim reads, which refuses a binary inside the project.
 #   2. <config>\ai2rules\plugin\bin\harness.exe, when its --version is the one
 #      binaries.lock pins.
 #   3. Otherwise: download the pinned tarball from registry.npmjs.org, check its
@@ -14,12 +16,18 @@ $ErrorActionPreference = 'Stop'
 
 function Say($msg) { [Console]::Error.WriteLine("ai2rules: $msg") }
 
-if ($env:AI2RULES_HARNESS) {
-    if (-not (Test-Path -LiteralPath $env:AI2RULES_HARNESS -PathType Leaf)) {
-        Say "AI2RULES_HARNESS is set to $($env:AI2RULES_HARNESS), which is not a file."
+$givenBy = 'AI2RULES_HARNESS_FOR_PLUGIN'
+$given = $env:AI2RULES_HARNESS_FOR_PLUGIN
+if (-not $given) {
+    $givenBy = 'AI2RULES_HARNESS'
+    $given = $env:AI2RULES_HARNESS
+}
+if ($given) {
+    if (-not (Test-Path -LiteralPath $given -PathType Leaf)) {
+        Say "$givenBy is set to $given, which is not a file."
         exit 127
     }
-    & $env:AI2RULES_HARNESS @args
+    & $given @args
     exit $LASTEXITCODE
 }
 
@@ -60,7 +68,7 @@ if ((Test-Path -LiteralPath $bin) -and $version -ne 'pending') {
 
 if ($version -eq 'pending' -or $want -eq 'pending') {
     Say 'this build of the plugin needs a harness release that is not on npm yet.'
-    Say 'Point it at a local build:  $env:AI2RULES_HARNESS = "C:\absolute\path\to\harness.exe"'
+    Say 'Point it at a local build:  $env:AI2RULES_HARNESS_FOR_PLUGIN = "C:\absolute\path\to\harness.exe"'
     exit 1
 }
 if (-not $want) {

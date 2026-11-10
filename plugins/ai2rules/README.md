@@ -22,6 +22,7 @@ have the commands.
 | `/ai2rules:guard seatbelt` | Claude Code asks before a push, a delete, a credential read, a CI definition or a shell send (`curl`, `scp`, `gh pr create`, mail). Web reads are never asked about, and on the way out only a recognised credential shape is refused. Nothing else changes. | same |
 | `/ai2rules:guard off` | Removes the hook. The log stays for the audit. | same |
 | `/ai2rules:about` | Shows what is installed and where ai2rules is configured: the plugin version, the harness version it pins and the one installed, where the binary lives, the guard's mode, which settings files (yours, the project's, the project-local and the managed policy) register an ai2rules hook, and each decision log with its line count. Read from files; it proves nothing about the session (that is `/ai2rules:status`). Where Claude Code runs mods (2.1.287 and later) it prints with no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). | nothing |
+| `/ai2rules:help` | Lists these commands on one page. Fixed text: it runs nothing. Where Claude Code runs mods it prints with no model turn (measured on Windows with Claude Code 2.1.322, in print mode). | nothing |
 | `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Shows recent decisions, and names any other ai2rules hook registered for the session (one `harness init` put in a project, your user settings or the managed policy), with whether this call passed through it. | nothing |
 
 The guard is off until you turn it on, and a new setting applies to sessions
@@ -37,14 +38,18 @@ A package with another hash is refused. No Node.js or npm is needed: Git Bash, L
 and macOS use `curl`, `tar` and `sha512sum`; Windows without Git Bash uses
 PowerShell and the `tar.exe` Windows ships.
 
-To use a binary of your own instead, set `AI2RULES_HARNESS` to its absolute path.
+To use a binary of your own instead, set `AI2RULES_HARNESS_FOR_PLUGIN` to its absolute
+path. `AI2RULES_HARNESS` is read too, after it; that one is also the pin a project's
+`harness init` hook reads, and that hook refuses a binary inside the project it governs.
 
 ## The one piece of code Claude Code runs itself
 
-`hooks/about.ts` is a Claude Code *mod*: a small TypeScript module that registers
-`/ai2rules:about` and answers it by running the same bootstrap as the other commands, so
-the answer needs no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). It hooks no tool call and holds no
-logic of its own. Where mods do not run, the `about` skill answers instead, through the
+`hooks/commands.ts` is a Claude Code *mod*: a small TypeScript module that registers
+`/ai2rules:about` and `/ai2rules:help` and answers them itself, so the answers need no model
+turn (measured on Windows with Claude Code 2.1.318 and 2.1.322; the Linux and macOS route not
+yet run against a real Claude Code). `about` runs the same bootstrap as the other commands;
+`help` is fixed text and runs nothing. The module hooks no tool call and holds no logic of its
+own. Where mods do not run, the skills of the same names answer instead, through the
 model: Claude Code before 2.1.287, `disableAllHooks` set in any settings file (it stops
 every mod), a folder you have not yet trusted in an interactive session, or an organisation
 that allows only managed mods.

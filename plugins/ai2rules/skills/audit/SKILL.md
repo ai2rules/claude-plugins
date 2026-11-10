@@ -37,7 +37,7 @@ and a suggested world under `suggested-world/`.
    whether it is live.
 
 If the command fails, show its error as it is. If it says a harness release is
-not on npm yet, explain that the person can set `AI2RULES_HARNESS` to a local
+not on npm yet, explain that the person can set `AI2RULES_HARNESS_FOR_PLUGIN` to a local
 build of `harness`.
 
 ## If you are Codex, not Claude Code

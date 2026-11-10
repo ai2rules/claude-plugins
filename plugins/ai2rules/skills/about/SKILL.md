@@ -5,7 +5,7 @@ disable-model-invocation: true
 
 # ai2rules about
 
-Where Claude Code runs the plugin's mod (`hooks/about.ts`, Claude Code 2.1.287 and
+Where Claude Code runs the plugin's mod (`hooks/commands.ts`, Claude Code 2.1.287 and
 later), the mod answers `/ai2rules:about` itself and you never see this. You are
 reading it because mods do not run here, so the same facts come through you.
 

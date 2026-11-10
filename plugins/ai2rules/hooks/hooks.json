@@ -1,1 +1,1 @@
-{ "modules": ["./about.ts"] }
+{ "modules": ["./commands.ts"] }

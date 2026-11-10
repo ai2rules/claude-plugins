@@ -3,8 +3,11 @@
 # installing it first if it is not there. For Git Bash, Linux and macOS;
 # `harness.ps1` beside it does the same on Windows without Git Bash.
 #
-#   1. AI2RULES_HARNESS, when it names a file: used as is (development builds,
-#      platforms npm has no binary for).
+#   1. AI2RULES_HARNESS_FOR_PLUGIN, else AI2RULES_HARNESS, when it names a file:
+#      used as is (development builds, platforms npm has no binary for). The
+#      first is read by the plugin alone. The second is also the pin a project's
+#      hook shim reads (D101), and that shim refuses a binary inside the project
+#      it governs, so a build under the project's own target/ goes in the first.
 #   2. <config>/ai2rules/plugin/bin/harness[.exe], when its --version is the one
 #      binaries.lock pins.
 #   3. Otherwise: download the pinned platform tarball from registry.npmjs.org,
@@ -31,12 +34,18 @@ dir="$config/ai2rules/plugin/bin"
 
 say() { printf 'ai2rules: %s\n' "$*" >&2; }
 
-if [ -n "${AI2RULES_HARNESS:-}" ]; then
-  if [ ! -f "$AI2RULES_HARNESS" ]; then
-    say "AI2RULES_HARNESS is set to $AI2RULES_HARNESS, which is not a file."
+given_by=AI2RULES_HARNESS_FOR_PLUGIN
+given="${AI2RULES_HARNESS_FOR_PLUGIN:-}"
+if [ -z "$given" ]; then
+  given_by=AI2RULES_HARNESS
+  given="${AI2RULES_HARNESS:-}"
+fi
+if [ -n "$given" ]; then
+  if [ ! -f "$given" ]; then
+    say "$given_by is set to $given, which is not a file."
     exit 127
   fi
-  exec "$AI2RULES_HARNESS" "$@"
+  exec "$given" "$@"
 fi
 
 case "$(uname -s)" in
@@ -69,13 +78,13 @@ fi
 
 if [ "$version" = pending ] || [ "$want" = pending ]; then
   say "this build of the plugin needs a harness release that is not on npm yet."
-  say "Point it at a local build:  export AI2RULES_HARNESS=/absolute/path/to/harness"
+  say "Point it at a local build:  export AI2RULES_HARNESS_FOR_PLUGIN=/absolute/path/to/harness"
   exit 1
 fi
 if [ -z "$want" ]; then
   say "no prebuilt harness for $platform (published: linux-x64, darwin-x64, darwin-arm64, windows-x64)."
   say "Ask for it at https://github.com/ai2rules/kernel-concepts/issues. With a harness binary of your own,"
-  say "point the plugin at it:  export AI2RULES_HARNESS=/absolute/path/to/harness"
+  say "point the plugin at it:  export AI2RULES_HARNESS_FOR_PLUGIN=/absolute/path/to/harness"
   exit 1
 fi
 

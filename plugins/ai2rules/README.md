@@ -8,13 +8,20 @@ machine; nothing is sent anywhere.
 /plugin install ai2rules@ai2rules
 ```
 
+When Claude Code asks where to install it, pick **your user account** (user
+scope), not a project. The plugin audits and guards the whole machine, so it
+belongs to every session you open. A local or project install covers only the one
+folder it was made in, and every git worktree is a separate folder: a session
+opened in another folder, or in a fresh worktree of the same repository, does not
+have the commands.
+
 | Command | What it does | What it writes |
 |---|---|---|
 | `/ai2rules:audit` | Reads your Claude Code history and settings and writes a local report: what the agents did, what a governance kernel would have asked or refused, risky settings, secrets in past sessions (their kind and place, never the value), whether governance is on, how broad your policy is, and a policy drafted from how you actually work. | `~/.claude/ai2rules/audit/<time>/` |
 | `/ai2rules:guard observe` | Every tool call is decided and logged. Nothing is blocked. | the hook entries in `~/.claude/settings.json`, `~/.claude/ai2rules/plugin/` |
 | `/ai2rules:guard seatbelt` | Claude Code asks before a push, a delete, a credential read, a CI definition or a shell send (`curl`, `scp`, `gh pr create`, mail). Web reads are never asked about, and on the way out only a recognised credential shape is refused. Nothing else changes. | same |
 | `/ai2rules:guard off` | Removes the hook. The log stays for the audit. | same |
-| `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Shows recent decisions. | nothing |
+| `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Shows recent decisions, and names any other ai2rules hook registered for the session (one `harness init` put in a project, your user settings or the managed policy), with whether this call passed through it. | nothing |
 
 The guard is off until you turn it on, and a new setting applies to sessions
 started after it.

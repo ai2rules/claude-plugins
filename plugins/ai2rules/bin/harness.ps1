@@ -25,6 +25,13 @@ if ($env:AI2RULES_HARNESS) {
 
 $lock = if ($env:AI2RULES_LOCK) { $env:AI2RULES_LOCK } else { Join-Path $PSScriptRoot '..\binaries.lock' }
 $config = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $env:USERPROFILE '.claude' }
+# Run for Codex (`--host codex` among the arguments, D124): the binary lives under
+# Codex's home, the folder Codex's sandbox keeps read-only to a sandboxed agent.
+for ($i = 0; $i -lt $args.Count - 1; $i++) {
+    if ($args[$i] -eq '--host' -and $args[$i + 1] -eq 'codex') {
+        $config = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
+    }
+}
 $dir = Join-Path $config 'ai2rules\plugin\bin'
 $bin = Join-Path $dir 'harness.exe'
 $platform = 'windows-x64'

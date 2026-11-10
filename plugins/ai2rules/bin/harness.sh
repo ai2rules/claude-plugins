@@ -18,6 +18,15 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lock="${AI2RULES_LOCK:-$here/../binaries.lock}"
 config="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+# Run for Codex (`--host codex` among the arguments, D124): the binary lives under
+# Codex's home, the folder Codex's sandbox keeps read-only to a sandboxed agent.
+prev=
+for a in "$@"; do
+  if [ "$prev" = --host ] && [ "$a" = codex ]; then
+    config="${CODEX_HOME:-$HOME/.codex}"
+  fi
+  prev="$a"
+done
 dir="$config/ai2rules/plugin/bin"
 
 say() { printf 'ai2rules: %s\n' "$*" >&2; }

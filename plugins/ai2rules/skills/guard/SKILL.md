@@ -43,3 +43,37 @@ kept. Relay what it printed. Then say plainly:
   sessions. To prove it is live, start a new session and run `/ai2rules:status`.
 - It is a seatbelt, not a cage: the hook lives in the person's own settings, and an
   agent with a shell could edit them.
+
+## If you are Codex, not Claude Code
+
+Everything above is for Claude Code. In Codex the guard goes into
+`~/.codex/hooks.json` instead, and only `observe` and `off` exist: a Codex hook
+cannot ask, so `seatbelt` is not available there yet. If the person asked for
+`seatbelt`, say so and offer `observe`.
+
+`${CLAUDE_PLUGIN_ROOT}` is not set for you. The plugin root is the folder two
+levels above this `SKILL.md` (`…/skills/guard/SKILL.md` → `…`). Run exactly one
+command, with `--host codex`, and ask to run it outside the sandbox (escalated
+permissions), saying why: the first run downloads the `harness` binary once from
+registry.npmjs.org, and the command writes `~/.codex/hooks.json` and
+`~/.codex/ai2rules/`, which the sandbox keeps read-only. The person approves it.
+On Windows (PowerShell):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin root>/bin/harness.ps1" guard observe --host codex
+```
+
+On macOS and Linux:
+
+```bash
+bash "<plugin root>/bin/harness.sh" guard observe --host codex
+```
+
+(`off` instead of `observe` to remove it.) Relay what it printed. Then say plainly:
+
+- **Codex runs the hook only after the person trusts it.** Start `codex`, choose
+  *Review hooks* on the "Hooks need review" screen (or type `/hooks`) and trust the
+  ai2rules entries; in the desktop app, Settings > Hooks. Until then Codex skips it,
+  and `codex exec` does not say so.
+- Then start a new session and run the ai2rules status skill there to prove it is
+  live.

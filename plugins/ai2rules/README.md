@@ -21,6 +21,7 @@ have the commands.
 | `/ai2rules:guard observe` | Every tool call is decided and logged. Nothing is blocked. | the hook entries in `~/.claude/settings.json`, `~/.claude/ai2rules/plugin/` |
 | `/ai2rules:guard seatbelt` | Claude Code asks before a push, a delete, a credential read, a CI definition or a shell send (`curl`, `scp`, `gh pr create`, mail). Web reads are never asked about, and on the way out only a recognised credential shape is refused. Nothing else changes. | same |
 | `/ai2rules:guard off` | Removes the hook. The log stays for the audit. | same |
+| `/ai2rules:about` | Shows what is installed and where ai2rules is configured: the plugin version, the harness version it pins and the one installed, where the binary lives, the guard's mode, which settings files (yours, the project's, the project-local and the managed policy) register an ai2rules hook, and each decision log with its line count. Read from files; it proves nothing about the session (that is `/ai2rules:status`). Where Claude Code runs mods (2.1.287 and later) it prints with no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). | nothing |
 | `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Shows recent decisions, and names any other ai2rules hook registered for the session (one `harness init` put in a project, your user settings or the managed policy), with whether this call passed through it. | nothing |
 
 The guard is off until you turn it on, and a new setting applies to sessions
@@ -37,6 +38,44 @@ and macOS use `curl`, `tar` and `sha512sum`; Windows without Git Bash uses
 PowerShell and the `tar.exe` Windows ships.
 
 To use a binary of your own instead, set `AI2RULES_HARNESS` to its absolute path.
+
+## The one piece of code Claude Code runs itself
+
+`hooks/about.ts` is a Claude Code *mod*: a small TypeScript module that registers
+`/ai2rules:about` and answers it by running the same bootstrap as the other commands, so
+the answer needs no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). It hooks no tool call and holds no
+logic of its own. Where mods do not run, the `about` skill answers instead, through the
+model: Claude Code before 2.1.287, `disableAllHooks` set in any settings file (it stops
+every mod), a folder you have not yet trusted in an interactive session, or an organisation
+that allows only managed mods.
+
+## Codex (observe only, new in harness 0.9.3)
+
+The same binary can watch OpenAI's Codex. With `harness` on your PATH
+(`npm install -g ai2rules-harness`):
+
+```text
+harness guard observe --host codex   # register the hook in ~/.codex/hooks.json
+harness guard status --host codex    # registered? trust recorded? live?
+harness guard off --host codex       # remove it
+harness audit --host codex           # a local audit of your Codex sessions and config
+```
+
+After `observe`, start `codex`, trust the two ai2rules entries in `/hooks`, and start a
+new session: Codex skips a hook until a person trusts it. Each skill in this plugin also
+carries a section for Codex, for when Codex itself reads the skill.
+
+What to know before relying on it:
+
+- **Observe only.** A Codex hook cannot ask a person, so there is no `seatbelt` on Codex.
+- **Input typed into a running program is not seen.** Codex sends the hook nothing for
+  it, so an interactive program (a shell, a REPL) the policy does not ask about becomes a
+  shell the hook never sees.
+- **It needs a POSIX login shell on macOS and Linux.** With `pwsh`, `nu` or `xonsh` as
+  `$SHELL` the hook does not run, and status says NOT LIVE.
+- **Not yet run end to end on a real Codex install.** The hook was measured
+  on codex-cli 0.167 with a project hooks file; that Codex reads the user-level
+  `~/.codex/hooks.json` comes from its documentation and source.
 
 ## Honest limits
 

@@ -20,12 +20,20 @@ const BACKSLASH = String.fromCharCode(92)
 // loses the separator before a dot (the one in front of `.claude`), and a
 // backticked command loses its backticks. A fenced block is drawn as written;
 // the fence is one backtick longer than the longest run in the text.
-const fenced = (s: string): string => {
+//
+// The fence has to open a line of its own. Claude Code puts the plugin's name in
+// front of the answer, so a fence that starts the text sits in the middle of the
+// first line and is not a fence at all (plugin 0.2.1 did that, and the page was
+// still read as markdown). So every answer starts with a line of words, `lead`,
+// and the block follows it.
+const fenced = (lead: string, s: string): string => {
   const runs = s.match(/`+/g) ?? []
   const longest = runs.reduce((n, r) => Math.max(n, r.length), 0)
   const fence = '`'.repeat(Math.max(3, longest + 1))
-  return [fence + 'text', s, fence].join(NL)
+  return [lead, fence + 'text', s, fence].join(NL)
 }
+
+const LEAD = 'what is installed and where it is configured:'
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
@@ -56,17 +64,17 @@ export const register: Register = on => {
       const r = await $.process.run(argv, { timeoutMs: 180_000 })
       // The bootstrap's own lines (the one-time install) come first, as they happened.
       const out = [r.stderr.trimEnd(), r.stdout.trimEnd()].filter(s => s !== '').join(NL)
-      if (r.exitCode === 0) return { text: fenced(out) }
+      if (r.exitCode === 0) return { text: fenced(LEAD, out) }
       return {
         text: [
-          fenced(out),
+          fenced(LEAD, out),
           '',
           `harness exited with ${r.exitCode}. A harness older than the one that added "guard about" cannot answer this; /ai2rules:status still works.`,
         ].join(NL),
       }
     } catch (err) {
       // A spawn error can carry a path: fenced like the page.
-      return { text: fenced(`ai2rules: could not run ${argv[0]}: ${String(err)}`) }
+      return { text: fenced(`could not run ${argv[0]}:`, String(err)) }
     }
   })
 }

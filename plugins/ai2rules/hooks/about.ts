@@ -16,6 +16,17 @@ import type { Register } from 'claude-code'
 const NL = String.fromCharCode(10)
 const BACKSLASH = String.fromCharCode(92)
 
+// Claude Code draws a command's text as markdown. Read that way, a Windows path
+// loses the separator before a dot (the one in front of `.claude`), and a
+// backticked command loses its backticks. A fenced block is drawn as written;
+// the fence is one backtick longer than the longest run in the text.
+const fenced = (s: string): string => {
+  const runs = s.match(/`+/g) ?? []
+  const longest = runs.reduce((n, r) => Math.max(n, r.length), 0)
+  const fence = '`'.repeat(Math.max(3, longest + 1))
+  return [fence + 'text', s, fence].join(NL)
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     try {
@@ -43,17 +54,19 @@ export const register: Register = on => {
     try {
       // The first run downloads the pinned binary once: allow it time.
       const r = await $.process.run(argv, { timeoutMs: 180_000 })
-      const out = [r.stdout.trimEnd(), r.stderr.trimEnd()].filter(s => s !== '').join(NL)
-      if (r.exitCode === 0) return { text: out }
+      // The bootstrap's own lines (the one-time install) come first, as they happened.
+      const out = [r.stderr.trimEnd(), r.stdout.trimEnd()].filter(s => s !== '').join(NL)
+      if (r.exitCode === 0) return { text: fenced(out) }
       return {
         text: [
-          out,
+          fenced(out),
           '',
           `harness exited with ${r.exitCode}. A harness older than the one that added "guard about" cannot answer this; /ai2rules:status still works.`,
         ].join(NL),
       }
     } catch (err) {
-      return { text: `ai2rules: could not run ${argv[0]}: ${String(err)}` }
+      // A spawn error can carry a path: fenced like the page.
+      return { text: fenced(`ai2rules: could not run ${argv[0]}: ${String(err)}`) }
     }
   })
 }

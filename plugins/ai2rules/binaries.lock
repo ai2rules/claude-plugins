@@ -6,5 +6,5 @@
 # `pending` means the version this plugin needs is not on npm yet: the bootstrap
 # then asks for AI2RULES_HARNESS_FOR_PLUGIN (a local build). After a release is published,
 # `scripts/pin-plugin-binaries.sh <version>` fills this file in.
-version 0.9.4-rc.2
-windows-x64 874804c64dd458e751b94bb72b507e19b8cb9314c134c222b78870f773f0e79241db5671f89546d7a5ff0b7a6e9325d80c3e77df85fe10fd6161bd786e4be04e
+version 0.9.4-rc.3
+windows-x64 ee3d824ef66a3d33b7d92067214f2e2fa467e03c1cdab699cb1f16a1833aa988bf2b1fe43749d2af534a0c911ecd4f360bc34dab1e1240c4949d614b2feb7fc1

@@ -1,10 +1,17 @@
 {
   "name": "ai2rules",
-  "version": "0.2.3-rc.3",
-  "description": "Audit Claude Code on this machine (what the agent did, what a governance kernel would have stopped, risky settings, secrets in past sessions), then turn on a hook that logs or asks before what cannot be undone. Local; nothing leaves the machine.",
+  "version": "0.3.0-rc.3",
+  "description": "Audit Claude Code on this machine (what the agent did, what a governance kernel would have stopped, risky settings, secrets in past sessions), then turn on a hook that logs or asks before what cannot be undone. Local: nothing leaves the machine unless you connect it to a fleet centre with /ai2rules:connect.",
   "author": { "name": "ai2rules", "url": "https://ai2rules.dev" },
   "homepage": "https://ai2rules.dev",
   "repository": "https://github.com/ai2rules/claude-plugins",
   "license": "MIT OR Apache-2.0",
-  "keywords": ["governance", "audit", "security", "permissions", "hooks", "agents"]
+  "keywords": ["governance", "audit", "security", "permissions", "hooks", "agents"],
+  "userConfig": {
+    "fleet_centre": {
+      "type": "string",
+      "title": "Fleet centre (optional)",
+      "description": "Only if your organisation runs an ai2rules fleet centre: its https:// address, from your admin. Used by /ai2rules:connect. Leave empty otherwise."
+    }
+  }
 }

@@ -6,7 +6,7 @@
     {
       "name": "ai2rules",
       "source": "./plugins/ai2rules",
-      "description": "Audit Claude Code on this machine (what the agent did, what a governance kernel would have stopped, risky settings, secrets in past sessions), then turn on a hook that logs or asks before what cannot be undone. Local; nothing leaves the machine."
+      "description": "Audit Claude Code on this machine (what the agent did, what a governance kernel would have stopped, risky settings, secrets in past sessions), then turn on a hook that logs or asks before what cannot be undone. Local: nothing leaves the machine unless you connect it to a fleet centre with /ai2rules:connect."
     }
   ]
 }

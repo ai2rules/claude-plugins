@@ -31,10 +31,18 @@ and a suggested world under `suggested-world/`.
    Do not add findings of your own, and do not read secret values out of the
    history: the report deliberately names only their kind, session and line.
 
-3. Offer to open the report in the browser (`start "" "<path>"` on Windows,
-   `open` on macOS, `xdg-open` on Linux). Mention that `/ai2rules:guard observe`
-   starts recording every decision from now on, and `/ai2rules:status` proves
-   whether it is live.
+3. Show the report. Always give its path as a link to the local file
+   (`[report.html](<path>)`), so an app that opens links in its own browser makes it
+   one click. Then, if you have a tool that shows the person a local file inside the
+   app you run in (in the Claude desktop app, the tool that sends a file to the person
+   and renders it; or an app's own browser pane), open `report.html` with it right
+   away, without asking: they ran the audit to read it. Open the file itself: never
+   upload or publish it, and do not start a server for it, because the report stays
+   on this machine. If you have no such tool (a terminal), offer to open it in the
+   system browser instead (`start "" "<path>"` on Windows, `open` on macOS,
+   `xdg-open` on Linux). Mention that
+   `/ai2rules:guard observe` starts recording every decision from now on, and
+   `/ai2rules:status` proves whether it is live.
 
 If the command fails, show its error as it is. If it says a harness release is
 not on npm yet, explain that the person can set `AI2RULES_HARNESS_FOR_PLUGIN` to a local
@@ -61,6 +69,9 @@ On macOS and Linux:
 bash "<plugin root>/bin/harness.sh" audit --host codex
 ```
 
-Then relay what it printed, as in step 2, and offer to open the report as in
-step 3, naming the ai2rules guard and status skills instead of the slash commands.
+Then relay what it printed, as in step 2, and show the report as in step 3: the
+path as a link to the local file, which the Codex app opens in its own browser with
+one click, and the file opened right away if you have a tool that shows the person a
+local file inside the app, never uploaded, published or served. Name the ai2rules
+guard and status skills instead of the slash commands.
 The suggested world is not built for Codex yet; the report says so.

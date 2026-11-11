@@ -72,7 +72,8 @@ if ($version -eq 'pending' -or $want -eq 'pending') {
     exit 1
 }
 if (-not $want) {
-    Say "binaries.lock pins no binary for $platform."
+    Say "no prebuilt harness $version for $platform. (A release candidate is built for Windows x64 only;"
+    Say "stable releases have linux-x64, darwin-x64, darwin-arm64 and windows-x64.)"
     exit 1
 }
 

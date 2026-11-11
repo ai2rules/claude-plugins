@@ -82,7 +82,8 @@ if [ "$version" = pending ] || [ "$want" = pending ]; then
   exit 1
 fi
 if [ -z "$want" ]; then
-  say "no prebuilt harness for $platform (published: linux-x64, darwin-x64, darwin-arm64, windows-x64)."
+  say "no prebuilt harness $version for $platform. (A release candidate is built for Windows x64 only;"
+  say "stable releases have linux-x64, darwin-x64, darwin-arm64 and windows-x64.)"
   say "Ask for it at https://github.com/ai2rules/kernel-concepts/issues. With a harness binary of your own,"
   say "point the plugin at it:  export AI2RULES_HARNESS_FOR_PLUGIN=/absolute/path/to/harness"
   exit 1

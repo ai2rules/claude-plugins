@@ -35,11 +35,12 @@ no summary, no advice.
     What is installed and where ai2rules is configured: versions, the
     binary, the guard mode, the settings files, the decision logs.
 
-/ai2rules:connect [email]
+/ai2rules:connect [email | stop]
     Connect this machine to your organisation fleet centre, if it has one:
     your work email, then the six-digit code your admin reads to you. No
     key or password. The centre can show and set policy; decisions stay
-    on this machine.
+    on this machine. stop ends the connection here; the machine stays
+    enrolled, and only your admin disconnects it for good.
 
 /ai2rules:help
     This page.

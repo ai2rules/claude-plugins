@@ -1,6 +1,6 @@
 ---
 description: Connect this machine to your organisation's ai2rules fleet centre. You give your work email and the six-digit code your admin reads to you; you are never asked for a key, token or password.
-argument-hint: "[your work email]"
+argument-hint: "[your work email | stop]"
 disable-model-invocation: true
 ---
 
@@ -12,12 +12,17 @@ to it; every decision about a tool call stays on this machine.
 
 The centre's address, from the plugin's configuration: `${user_config.fleet_centre}`
 
+If `$ARGUMENTS` is the word `stop`, go straight to "Stopping" below: stopping needs
+no address.
+
 If that address is empty, or still reads as a placeholder starting with `${`, run
 nothing. Tell the person the plugin does not know their fleet centre yet: their admin
-sets it for the organisation (managed settings, `pluginConfigs` →
-`ai2rules@ai2rules` → `fleet_centre`), or they set it themselves with
-`/plugin configure ai2rules@ai2rules` (the "Fleet centre" option, an `https://`
-address their admin gives them) and restart Claude Code. Then stop.
+sets it for the organisation (managed settings, `pluginConfigs` → the plugin's name →
+`fleet_centre`), or they set it themselves with `/plugin configure` and the plugin's
+name (the "Fleet centre" option, an `https://` address their admin gives them), and
+restart Claude Code. The plugin's name depends on where it was installed from, so name
+both: `ai2rules@ai2rules` from the usual marketplace, `ai2rules@ai2rules-next` from the
+test channel (`/plugin` lists the one they have). Then stop.
 
 Run nothing either unless the address has exactly one of these shapes, character for
 character, and nothing else at all (no space, line break, quote of any kind, `$`,
@@ -107,7 +112,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 - It says the connector "runs in the background": the machine is connected. Tell the
   person it now shows on the fleet page, that it stays connected while this computer
   is on, and that after a restart they run `/ai2rules:connect` again (no new code is
-  needed then).
+  needed then). To end the connection on this machine, they run
+  `/ai2rules:connect stop`.
 - "wrong code" or "six digits": ask for the code again and repeat step 3.
 - "Start again": the code expired or was wrong five times, and the enrollment is gone.
   Tell the person so, and ask them to check that the address is the one their admin
@@ -116,6 +122,28 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 - "too many attempts": relay it word for word. Tell the person to wait a while and run
   `/ai2rules:connect` again, or to ask their admin to clear the limit. Do not retry. Stop.
 - Anything else: relay it word for word and stop.
+
+## Stopping
+
+Only when `$ARGUMENTS` is `stop`. Run:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --stop
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --stop
+```
+
+- It says it "stopped this machine's connector": relay its lines. Tell the person this
+  ends the connection on this machine only until they run `/ai2rules:connect` again
+  (no new code is needed then). It does not disconnect the
+  machine for good: the machine stays enrolled and the centre still lists it; that is
+  their admin's revoke on the fleet page. Then stop.
+- It says "no connector is running", or that the connector "has ended by itself":
+  tell the person no connector runs on this machine now, so there was nothing to stop.
+  Stop.
+- Anything else (it could not stop the connector): relay it word for word and stop.
 
 ## If you are Codex, not Claude Code
 

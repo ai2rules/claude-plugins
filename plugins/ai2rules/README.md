@@ -24,7 +24,7 @@ have the commands.
 | `/ai2rules:guard off` | Removes the hook. The log stays for the audit. | same |
 | `/ai2rules:about` | Shows what is installed and where ai2rules is configured: the plugin version, the harness version it pins and the one installed, where the binary lives, the guard's mode, which settings files (yours, the project's, the project-local and the managed policy) register an ai2rules hook, and each decision log with its line count. Read from files; it proves nothing about the session (that is `/ai2rules:status`). Where Claude Code runs mods (2.1.287 and later) it prints with no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). | nothing |
 | `/ai2rules:help` | Lists these commands on one page. Fixed text: it runs nothing. Where Claude Code runs mods it prints with no model turn (measured on Windows with Claude Code 2.1.322, in print mode). | nothing |
-| `/ai2rules:connect [email \| stop]` | Only if your organisation runs an ai2rules fleet centre: connects this machine to it. You give your work email and the six-digit code your admin reads to you; no key, token or password is asked or shown. The centre's address comes from the plugin's *Fleet centre* option (`/plugin configure ai2rules@ai2rules`, or `ai2rules@ai2rules-next` if you installed the test channel), or from your admin's managed settings. The centre can see this machine's console and push policy; decisions stay on the machine. `/ai2rules:connect stop` ends the connection on this machine; it stays enrolled (the next `/ai2rules:connect` needs no code), and only your admin disconnects it for good. | `~/.claude/ai2rules/fleet/` (the machine's token, readable by you only) |
+| `/ai2rules:connect [email \| stop]` | Only if your organisation runs an ai2rules fleet centre: connects this machine to it. You give your work email and confirm with one click on the page the centre mails you a link to, pressing the check code Claude names (an older centre gives a six-digit code instead, which your admin reads to you); no key, token or password is asked or shown. The centre's address comes from the plugin's *Fleet centre* option (`/plugin configure ai2rules@ai2rules`, or `ai2rules@ai2rules-next` if you installed the test channel), or from your admin's managed settings. The centre can see this machine's console and push policy; decisions stay on the machine. `/ai2rules:connect stop` ends the connection on this machine; it stays enrolled (the next `/ai2rules:connect` needs no new mail or code), and only your admin disconnects it for good. | `~/.claude/ai2rules/fleet/` (the machine's token, readable by you only); the fleet connector `harness-connect`, installed once beside `harness` |
 | `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Shows recent decisions, and names any other ai2rules hook registered for the session (one `harness init` put in a project, your user settings or the managed policy), with whether this call passed through it. | nothing |
 
 The guard is off until you turn it on, and a new setting applies to sessions
@@ -39,6 +39,11 @@ you run downloads it once from the npm registry
 A package with another hash is refused. No Node.js or npm is needed: Git Bash, Linux
 and macOS use `curl`, `tar` and `sha512sum`; Windows without Git Bash uses
 PowerShell and the `tar.exe` Windows ships.
+
+`/ai2rules:connect` needs one more program, the fleet connector `harness-connect`
+(`harness connect` runs it). It is installed the same way the first time you connect:
+`ai2rules-connect-<platform>-<version>.tgz`, checked against `connect.lock`, into the
+same folder. `AI2RULES_CONNECT_FOR_PLUGIN` names a build of your own.
 
 To use a binary of your own instead, set `AI2RULES_HARNESS_FOR_PLUGIN` to its absolute
 path. `AI2RULES_HARNESS` is read too, after it; that one is also the pin a project's

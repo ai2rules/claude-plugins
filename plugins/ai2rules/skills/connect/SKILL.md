@@ -1,5 +1,5 @@
 ---
-description: Connect this machine to your organisation's ai2rules fleet centre. You give your work email and the six-digit code your admin reads to you; you are never asked for a key, token or password.
+description: Connect this machine to your organisation's ai2rules fleet centre. You give your work email and confirm with one click on the page the centre mails you a link to; you are never asked for a key, token or password.
 argument-hint: "[your work email | stop]"
 disable-model-invocation: true
 ---
@@ -70,9 +70,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 - It says the machine "is not enrolled": go to step 2.
 - It says the machine "is enrolled with" one centre, "not with" the configured one:
   the fleet has moved. Tell the person the machine is still enrolled with the old
-  centre, and that connecting it to the new one takes their email and a new code. On
-  yes, go to step 2. Once the new enrollment is made, the old connector stops by
-  itself.
+  centre, and that connecting it to the new one takes their email and a new
+  confirmation. On yes, go to step 2. Once the new enrollment is made, the old
+  connector stops by itself.
 - It says the admin "disconnected this machine": tell the person so, and ask whether
   to connect it again. On yes, go to step 2.
 - Anything else: relay it word for word and stop.
@@ -90,16 +90,52 @@ bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --centre '<CENTRE>' --email 
 powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --centre '<CENTRE>' --email 'EMAIL'
 ```
 
-- "if your address is on the list, the admin has your code": go to step 3. The centre
-  answers every address alike, so this does not mean the address is on the list.
+- "a mail is on its way": tell the person, in so many words: "I sent the request.
+  Check your inbox for a mail from the fleet centre and open the link. I'm waiting." If it also says "the check code is" and a code, add: "The page shows
+  four codes: press CHECK. If it is not among them, press none." with that code in
+  place of CHECK. The centre answers every address alike, so this does not
+  mean the address is on the list. Then go to step 3 at once, without waiting for an
+  answer.
+- "if your address is on the list, the admin has your code": this centre is an older
+  one, which confirms with a six-digit code instead of a mail. Go to step 4. The
+  centre answers every address alike, so this does not mean the address is on the list.
 - "too many attempts": relay it word for word. Tell the person to wait a while and run
   `/ai2rules:connect` again, or to ask their admin to clear the limit. Do not retry. Stop.
 - Anything else: relay it word for word and stop.
 
-## 3. The code
+## 3. Waiting for the confirmation
 
-Ask the person for the six-digit code: until the centre sends mail, their admin reads
-it to them. Wait for the answer, then run:
+Run this with the tool's timeout set to 600000 ms (ten minutes): it waits, up to nine
+minutes, until the person confirms on the page the mail links to.
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --wait --background
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --wait --background
+```
+
+- It says the connector "runs in the background": the machine is connected. Tell the
+  person it now shows on the fleet page, that it stays connected while this computer
+  is on, and that after a restart they run `/ai2rules:connect` again (no new mail is
+  needed then). To end the connection on this machine, they run
+  `/ai2rules:connect stop`.
+- "still waiting for the confirmation": ask the person whether the mail came and
+  whether they pressed their check code on the page it opens (and to look in their spam
+  folder). Wait for their answer, then run step 3 again.
+- "Start again": the link expired or was already used, and the enrollment is gone.
+  Tell the person so, and ask them to check that the address is the one their admin
+  put on the list. Only if they ask to start again, run step 2 (with the address they
+  confirm).
+- "too many attempts": relay it word for word. Tell the person to wait a while and run
+  `/ai2rules:connect` again, or to ask their admin to clear the limit. Do not retry. Stop.
+- Anything else: relay it word for word and stop.
+
+## 4. The code (an older centre)
+
+Only when step 2 said the admin has the code. Ask the person for the six-digit code:
+their admin reads it to them. Wait for the answer, then run:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --code 'CODE' --background
@@ -114,7 +150,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
   is on, and that after a restart they run `/ai2rules:connect` again (no new code is
   needed then). To end the connection on this machine, they run
   `/ai2rules:connect stop`.
-- "wrong code" or "six digits": ask for the code again and repeat step 3.
+- "wrong code" or "six digits": ask for the code again and repeat step 4.
 - "Start again": the code expired or was wrong five times, and the enrollment is gone.
   Tell the person so, and ask them to check that the address is the one their admin
   put on the list. Only if they ask to start again, run step 2 (with the address they
@@ -137,7 +173,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 
 - It says it "stopped this machine's connector": relay its lines. Tell the person this
   ends the connection on this machine only until they run `/ai2rules:connect` again
-  (no new code is needed then). It does not disconnect the
+  (no new mail or code is needed then). It does not disconnect the
   machine for good: the machine stays enrolled and the centre still lists it; that is
   their admin's revoke on the fleet page. Then stop.
 - It says "no connector is running", or that the connector "has ended by itself":
@@ -150,4 +186,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 This command reads the centre's address from Claude Code's plugin configuration,
 which Codex does not have. Run nothing. Tell the person to run `/ai2rules:connect` in
 Claude Code, or, in a terminal of their own, `harness connect --centre <address>
---email <their address>`, which asks for the code itself.
+--email <their address>`, which waits for the mailed link itself (or, with an older
+centre, asks for the code). `harness connect` runs the fleet connector, a program of
+its own: if it says the connector is not installed, `npm install -g ai2rules-connect`
+installs it.

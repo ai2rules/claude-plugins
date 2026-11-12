@@ -70,7 +70,7 @@ const PAGE = [
   '',
   '/ai2rules:connect [email | stop]',
   '    Connect this machine to your organisation fleet centre, if it has one:',
-  '    your work email, then the six-digit code your admin reads to you. No',
+  '    your work email, then the link the centre mails you to confirm. No',
   '    key or password. The centre can show and set policy; decisions stay',
   '    on this machine. stop ends the connection here; the machine stays',
   '    enrolled, and only your admin disconnects it for good.',

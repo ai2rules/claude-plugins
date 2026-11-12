@@ -1,6 +1,6 @@
 {
   "name": "ai2rules",
-  "version": "0.3.0-rc.5",
+  "version": "0.3.0-rc.6",
   "description": "Audit Claude Code on this machine (what the agent did, what a governance kernel would have stopped, risky settings, secrets in past sessions), then turn on a hook that logs or asks before what cannot be undone. Local: nothing leaves the machine unless you connect it to a fleet centre with /ai2rules:connect.",
   "author": { "name": "ai2rules", "url": "https://ai2rules.dev" },
   "homepage": "https://ai2rules.dev",

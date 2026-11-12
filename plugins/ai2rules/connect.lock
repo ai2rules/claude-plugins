@@ -1,0 +1,10 @@
+# The fleet connector this plugin installs for /ai2rules:connect (D137): harness-connect,
+# from ai2rules/app-console, which `harness connect` runs. bin/harness.sh and
+# bin/harness.ps1 download ai2rules-connect-<platform>-<version>.tgz from
+# registry.npmjs.org and refuse it unless its SHA-512 (hex) is the one below.
+#
+# `pending` means the version this plugin needs is not on npm yet: the bootstrap then
+# asks for AI2RULES_CONNECT_FOR_PLUGIN (a local build). After app-console has published
+# a release, `scripts/pin-plugin-binaries.sh --connect <version>` fills this file in.
+version 0.1.0-rc.1
+windows-x64 4a5398298d52c1a0677a7cc4347fc54ed3155ab81447e2eac21c1c686f5d38ede73abbfd486db7118932a05a75489ec0aa7315a7a79b6eb6b5b42b61ee94fcf8

@@ -15,16 +15,41 @@ The centre's address, from the plugin's configuration: `${user_config.fleet_cent
 If `$ARGUMENTS` is the word `stop`, go straight to "Stopping" below: stopping needs
 no address.
 
-If that address is empty, or still reads as a placeholder starting with `${`, run
-nothing. Tell the person the plugin does not know their fleet centre yet: their admin
-sets it for the organisation (managed settings, `pluginConfigs` → the plugin's name →
-`fleet_centre`), or they set it themselves with `/plugin configure` and the plugin's
-name (the "Fleet centre" option, an `https://` address their admin gives them), and
-restart Claude Code. The plugin's name depends on where it was installed from, so name
-both: `ai2rules@ai2rules` from the usual marketplace, `ai2rules@ai2rules-next` from the
-test channel (`/plugin` lists the one they have). Then stop.
+If that address is empty, or still reads as a placeholder starting with `${`, the
+machine may still be enrolled already (from a terminal, or under another plugin name),
+and then it needs no address: the enrollment keeps its centre. Go to "No address
+configured" below.
 
-Run nothing either unless the address has exactly one of these shapes, character for
+## No address configured
+
+Only when the address above is empty or a placeholder. Run:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --background
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --background
+```
+
+- It says "the connector runs in the background" or a connector is "already running":
+  the machine is connected, with the centre it was enrolled with (the line names it).
+  Relay its lines, and tell the person what step 1 says for a connected machine. Stop.
+- It says the machine "is not enrolled": tell the person the plugin does not know
+  their fleet centre yet, so it cannot enroll this machine: their admin sets it for the
+  organisation (managed settings, `pluginConfigs` → the plugin's name → `fleet_centre`),
+  or they set it themselves with `/plugin configure` and the plugin's name (the "Fleet
+  centre" option, an `https://` address their admin gives them), and restart Claude
+  Code. The plugin's name depends on where it was installed from, so name both:
+  `ai2rules@ai2rules` from the usual marketplace, `ai2rules@ai2rules-next` from the
+  test channel (`/plugin` lists the one they have). Then stop.
+- It says the admin "disconnected this machine": tell the person so, and that
+  connecting it again needs the fleet centre's address set as above. Stop.
+- Anything else: relay it word for word and stop.
+
+## The configured address
+
+Run nothing unless the address has exactly one of these shapes, character for
 character, and nothing else at all (no space, line break, quote of any kind, `$`,
 backtick or any other character):
 

@@ -23,6 +23,17 @@ $ErrorActionPreference = 'Stop'
 function Say($msg) { [Console]::Error.WriteLine("ai2rules: $msg") }
 
 # The `key value` lines of a lock file, as a table.
+# A file's digest in lowercase hex, through .NET rather than Get-FileHash: that cmdlet is a
+# script function of Microsoft.PowerShell.Utility, and a Windows PowerShell started from
+# PowerShell 7 inherits its PSModulePath, finds 7's module instead and has no Get-FileHash
+# (seen on the CI's Windows runner, 2026-11-13).
+function Get-HexDigest([string]$Path, [string]$Algorithm) {
+    $alg = [System.Security.Cryptography.HashAlgorithm]::Create($Algorithm)
+    $stream = [System.IO.File]::OpenRead($Path)
+    try { return (($alg.ComputeHash($stream) | ForEach-Object { $_.ToString('x2') }) -join '') }
+    finally { $stream.Dispose(); $alg.Dispose() }
+}
+
 function Read-Lock($path) {
     $entries = @{}
     foreach ($line in Get-Content -LiteralPath $path) {
@@ -45,7 +56,7 @@ function Install-Pinned($what, $pkg, $version, $want, $file, $dest) {
         $tgz = Join-Path $tmp 'pkg.tgz'
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $tgz
-        $got = (Get-FileHash -Algorithm SHA512 -LiteralPath $tgz).Hash.ToLowerInvariant()
+        $got = Get-HexDigest $tgz 'SHA512'
         if ($got -ne $want.ToLowerInvariant()) {
             Say 'the downloaded package does not have the SHA-512 the plugin pins; refusing it.'
             Say "  expected $want"

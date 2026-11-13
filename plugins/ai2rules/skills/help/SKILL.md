@@ -35,6 +35,11 @@ no summary, no advice.
     What is installed and where ai2rules is configured: versions, the
     binary, the guard mode, the settings files, the decision logs.
 
+/ai2rules:console [stop]
+    Open the policy console on http://127.0.0.1:8790/: Allow / Ask / Off
+    switches for what the agent may do, and a live feed of decisions. It
+    runs in the background; stop closes it. The world stays as you left it.
+
 /ai2rules:connect [email | stop]
     Connect this machine to your organisation fleet centre, if it has one:
     your work email, then the link the centre mails you to confirm. No
@@ -57,5 +62,6 @@ More: https://github.com/ai2rules/claude-plugins
 The slash commands on that page are Claude Code's. Do not show the page. Tell the
 person that in Codex the same things are the ai2rules skills: audit, guard
 (`observe` and `off` only: a Codex hook cannot ask, so there is no `seatbelt`
-there yet) and status; `about` has no Codex form yet, and `connect` needs
-Claude Code's plugin configuration.
+there yet) and status; `about` has no Codex form yet, `connect` needs
+Claude Code's plugin configuration, and the console is `harness console` in a
+terminal.

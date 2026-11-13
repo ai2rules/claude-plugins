@@ -65,14 +65,30 @@ bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --background --centre '<CENT
 powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --background --centre '<CENTRE>'
 ```
 
-- It says the connector "runs in the background" or is "already running": the
-  machine is connected. Relay its lines and stop.
-- It says the machine "is not enrolled": go to step 2.
+Read its lines in this order, and take the first that fits:
+
+- It says this machine "joins the fleet by itself": a request made earlier is still
+  waiting for the person's confirmation, and a helper on this machine waits for it (the
+  machine is not connected yet). Mail nothing new. If the person says they have already
+  pressed the code, tell them the helper picks the confirmation up within a few seconds,
+  and to run `/ai2rules:connect` again in a moment to see the machine connected; do not
+  ask them to press again (the link works once). Otherwise tell them to open the mail
+  from the fleet centre and press the check code that line names on the page it opens;
+  the machine then joins by itself. Stop.
+- It says "the connector runs in the background" or a connector is "already running":
+  the machine is connected. Relay its lines. Tell the person it stays connected while
+  this computer is on, that after a restart they run `/ai2rules:connect` again (no new
+  mail is needed then), and that `/ai2rules:connect stop` ends the connection on this
+  machine. Stop.
+- It says the machine "is not enrolled": go to step 2. If it also says the last request
+  "ended without this machine joining", tell the person why first, in its words (the
+  link expired or was already used, or too many attempts), then go to step 2.
 - It says the machine "is enrolled with" one centre, "not with" the configured one:
   the fleet has moved. Tell the person the machine is still enrolled with the old
-  centre, and that connecting it to the new one takes their email and a new
-  confirmation. On yes, go to step 2. Once the new enrollment is made, the old
-  connector stops by itself.
+  centre, and ask, in so many words: "Should I enroll this machine with <CENTRE>? It
+  takes your work email and one confirmation in a mail." with the configured address in
+  place of <CENTRE>. Wait for the answer. On yes, go to step 2. Once the new enrollment
+  is made, the old connector stops by itself.
 - It says the admin "disconnected this machine": tell the person so, and ask whether
   to connect it again. On yes, go to step 2.
 - Anything else: relay it word for word and stop.
@@ -83,19 +99,32 @@ If `$ARGUMENTS` is an email address, use it. Otherwise ask the person for the wo
 email address their admin put on the fleet's list, and wait for the answer. Then run:
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --centre '<CENTRE>' --email 'EMAIL'
+bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --centre '<CENTRE>' --email 'EMAIL' --background
 ```
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --centre '<CENTRE>' --email 'EMAIL'
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --centre '<CENTRE>' --email 'EMAIL' --background
 ```
 
-- "a mail is on its way": tell the person, in so many words: "I sent the request.
-  Check your inbox for a mail from the fleet centre and open the link. I'm waiting." If it also says "the check code is" and a code, add: "The page shows
-  four codes: press CHECK. If it is not among them, press none." with that code in
-  place of CHECK. The centre answers every address alike, so this does not
-  mean the address is on the list. Then go to step 3 at once, without waiting for an
-  answer.
+- "a mail is on its way" and "joins the fleet by itself": the request is made, and a
+  helper on this machine waits for the confirmation, then connects the machine by
+  itself. Tell the person, in so many words: "Open the mail from the fleet centre and
+  press CHECK on the page it opens; this machine joins the fleet by itself. Nothing
+  else is needed now, from you or from me." with the code from the line "the check code is"
+  in place of CHECK, and add: "The page shows four codes. If CHECK is not among them,
+  press none. The code makes sure nobody can join your fleet with your email from their
+  own computer." Then: "Once it has joined, it stays connected while this computer is on;
+  after a restart, run `/ai2rules:connect` again (no new mail is needed then)." The
+  centre answers every address alike, so this does not mean the address is on the list.
+  Then stop: run nothing more and do not wait. If the person comes back and says they
+  pressed it, run step 1 and tell them what it says.
+- "a mail is on its way" with no "joins the fleet by itself", but "run `harness
+  connect --wait`" (an older connector): tell the person, in so many words: "I sent the
+  request. Check your inbox for a mail from the fleet centre and open the link. I'm
+  waiting." If it also says "the check code is" and a code, add: "The page shows four
+  codes: press CHECK. If it is not among them, press none. The code makes sure nobody
+  can join your fleet with your email from their own computer." with that code in place
+  of CHECK. Then go to step 3 at once, without waiting for an answer.
 - "if your address is on the list, the admin has your code": this centre is an older
   one, which confirms with a six-digit code instead of a mail. Go to step 4. The
   centre answers every address alike, so this does not mean the address is on the list.
@@ -103,10 +132,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
   `/ai2rules:connect` again, or to ask their admin to clear the limit. Do not retry. Stop.
 - Anything else: relay it word for word and stop.
 
-## 3. Waiting for the confirmation
+## 3. Waiting for the confirmation (an older connector)
 
-Run this with the tool's timeout set to 600000 ms (ten minutes): it waits, up to nine
-minutes, until the person confirms on the page the mail links to.
+Only when step 2 said to run `harness connect --wait`. Run this with the tool's timeout
+set to 600000 ms (ten minutes): it waits, up to nine minutes, until the person confirms
+on the page the mail links to.
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --wait --background
@@ -171,14 +201,17 @@ bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --stop
 powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --stop
 ```
 
+- If one of its lines says a request "is withdrawn": a request was still waiting for its
+  confirmation, and it is cancelled now, so this machine does not join when that mail is
+  confirmed. Tell the person so, then go on with the other lines below.
 - It says it "stopped this machine's connector": relay its lines. Tell the person this
   ends the connection on this machine only until they run `/ai2rules:connect` again
   (no new mail or code is needed then). It does not disconnect the
   machine for good: the machine stays enrolled and the centre still lists it; that is
   their admin's revoke on the fleet page. Then stop.
 - It says "no connector is running", or that the connector "has ended by itself":
-  tell the person no connector runs on this machine now, so there was nothing to stop.
-  Stop.
+  tell the person no connector runs on this machine now, so there was no connection to
+  stop (a withdrawn request, above, is still worth saying). Stop.
 - Anything else (it could not stop the connector): relay it word for word and stop.
 
 ## If you are Codex, not Claude Code

@@ -6,5 +6,5 @@
 # `pending` means the version this plugin needs is not on npm yet: the bootstrap then
 # asks for AI2RULES_CONNECT_FOR_PLUGIN (a local build). After app-console has published
 # a release, `scripts/pin-plugin-binaries.sh --connect <version>` fills this file in.
-version 0.1.0-rc.4
-windows-x64 0f9aab73d6324b359d665cd1be24e0f22f395925d412494732359b5a4981b9df5e7f3f4de15d17d0abde56716a29b9f1120f15a616e86623979f38fd2e9846dd
+version 0.1.0-rc.5
+windows-x64 d77e816cda6934919f0fcad93430ff37b5806a9f6a48f3878a25ea60ef85029687d1fb2493f41b85c8823b11826a5e877ff44aa79f276a96878421635f760bd6

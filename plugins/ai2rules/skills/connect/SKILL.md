@@ -34,7 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 
 - It says "the connector runs in the background" or a connector is "already running":
   the machine is connected, with the centre it was enrolled with (the line names it).
-  Relay its lines, and tell the person what step 1 says for a connected machine. Stop.
+  Do "So that the centre sees this machine" below first, using that centre. Relay its lines, and tell the person what step 1 says for a connected machine. Stop.
 - It says the machine "is not enrolled": tell the person the plugin does not know
   their fleet centre yet, so it cannot enroll this machine: their admin sets it for the
   organisation (managed settings, `pluginConfigs` → the plugin's name → `fleet_centre`),
@@ -94,14 +94,14 @@ Read its lines in this order, and take the first that fits:
 
 - It says this machine "joins the fleet by itself": a request made earlier is still
   waiting for the person's confirmation, and a helper on this machine waits for it (the
-  machine is not connected yet). Mail nothing new. If the person says they have already
+  machine is not connected yet). Mail nothing new. Do "So that the centre sees this machine" below first. If the person says they have already
   pressed the code, tell them the helper picks the confirmation up within a few seconds,
   and to run `/ai2rules:connect` again in a moment to see the machine connected; do not
   ask them to press again (the link works once). Otherwise tell them to open the mail
   from the fleet centre and press the check code that line names on the page it opens;
   the machine then joins by itself. Stop.
 - It says "the connector runs in the background" or a connector is "already running":
-  the machine is connected. Relay its lines. Tell the person it stays connected while
+  the machine is connected. Do "So that the centre sees this machine" below first. Relay its lines. Tell the person it stays connected while
   this computer is on, that after a restart they run `/ai2rules:connect` again (no new
   mail is needed then), and that `/ai2rules:connect stop` ends the connection on this
   machine. Stop.
@@ -118,6 +118,55 @@ Read its lines in this order, and take the first that fits:
   to connect it again. On yes, go to step 2.
 - Anything else: relay it word for word and stop.
 
+## So that the centre sees this machine
+
+The fleet centre sees a machine through two things on it: the guard, which decides and
+logs every tool call, and the local console, which the connector relays to the centre.
+The person never has to open the console. Do this whenever step 1, 2 or 3 says the
+machine is connected, or that it "joins the fleet by itself", before you tell the person
+the result, and only once in this conversation:
+
+1. See whether the guard is on:
+
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" guard about
+   ```
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" guard about
+   ```
+
+   If its `Guard:` line says `off`, turn it on in observe mode, which logs and blocks
+   nothing:
+
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" guard observe
+   ```
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" guard observe
+   ```
+
+   Then tell the person, in so many words: "I turned the guard on in observe mode: it
+   logs every tool call and blocks nothing, so the fleet centre sees what the agents do.
+   It applies to Claude Code sessions started from now on." If the `Guard:` line says
+   `observe` or `seatbelt`, leave it as it is: never change a mode the person chose.
+2. Start the console in the background (it says "already runs" if it does):
+
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" console --background
+   ```
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" console --background
+   ```
+
+   If it fails, relay its line, and go on: the machine is still connected.
+3. With the result of step 1, 2 or 3, tell the person where the admin looks: "The fleet
+   page is <CENTRE>: your admin sees this machine there, what its agents do, and the
+   tools they ask for. You do not need to open anything on this machine." Use the
+   configured address in place of <CENTRE>.
+
 ## 2. The email address
 
 If `$ARGUMENTS` is an email address, use it. Otherwise ask the person for the work
@@ -133,7 +182,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
 
 - "a mail is on its way" and "joins the fleet by itself": the request is made, and a
   helper on this machine waits for the confirmation, then connects the machine by
-  itself. Tell the person, in so many words: "Open the mail from the fleet centre and
+  itself. Do "So that the centre sees this machine" below first. Tell the person, in so many words: "Open the mail from the fleet centre and
   press CHECK on the page it opens; this machine joins the fleet by itself. Nothing
   else is needed now, from you or from me." with the code from the line "the check code is"
   in place of CHECK, and add: "The page shows four codes. If CHECK is not among them,
@@ -171,7 +220,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --wait --background
 powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --wait --background
 ```
 
-- It says the connector "runs in the background": the machine is connected. Tell the
+- It says the connector "runs in the background": the machine is connected. Do "So that the centre sees this machine" below first. Tell the
   person it now shows on the fleet page, that it stays connected while this computer
   is on, and that after a restart they run `/ai2rules:connect` again (no new mail is
   needed then). To end the connection on this machine, they run

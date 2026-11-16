@@ -1,5 +1,5 @@
 ---
-description: Audit Claude Code on this machine and write a local HTML report — what the agents did, what a governance kernel would have asked or refused, risky settings, secrets in past sessions (never their values), and whether governance is actually on. Read-only; nothing leaves the machine.
+description: Audit Claude Code on this machine and write a local HTML report — what the agents did, what a governance kernel would have asked or refused, risky settings, secrets in past sessions (never their values), and whether governance is actually on. Read-only; nothing leaves the machine unless you connect it to a fleet centre with /ai2rules:connect.
 argument-hint: "[transcript folders…] [--project DIR]"
 disable-model-invocation: true
 ---
@@ -43,6 +43,12 @@ and a suggested world under `suggested-world/`.
    `xdg-open` on Linux). Mention that
    `/ai2rules:guard observe` starts recording every decision from now on, and
    `/ai2rules:status` proves whether it is live.
+
+4. Say where the report is shown afterwards: in the console's Audit tab
+   (`/ai2rules:console`), with its numbers and "Open the full report"; and, when this
+   machine is connected to a fleet centre (`/ai2rules:connect`), at the centre too,
+   under this machine's console, to whoever opens that tab there. The centre passes it
+   on when asked and keeps none of it.
 
 If the command fails, show its error as it is. If it says a harness release is
 not on npm yet, explain that the person can set `AI2RULES_HARNESS_FOR_PLUGIN` to a local

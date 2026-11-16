@@ -1,6 +1,6 @@
 ---
-description: Turn the ai2rules guard on or off for every Claude Code session on this machine — observe (log every decision, block nothing) or seatbelt (ask before a push, a delete, a credential read, a CI definition or a shell send; web reads are never asked about).
-argument-hint: "observe | seatbelt | off"
+description: Turn the ai2rules guard on or off for every Claude Code session on this machine — observe (log every decision, block nothing) or seatbelt (ask before a push, a delete, a credential read, a CI definition or a shell send, and about a tool nobody has decided on; refuse a tool switched Off; web reads are never asked about).
+argument-hint: "observe | seatbelt | off | refresh"
 disable-model-invocation: true
 ---
 
@@ -8,17 +8,21 @@ disable-model-invocation: true
 
 The person asked to switch the guard: `$ARGUMENTS`.
 
-If that is not exactly one of `observe`, `seatbelt` or `off`, do not run anything.
-Explain the choices in two lines and ask which they want:
+If that is not exactly one of `observe`, `seatbelt`, `off` or `refresh`, do not run
+anything. Explain the choices in two lines and ask which they want:
 
 - **observe**: the kernel decides every tool call and logs it; nothing is blocked
   and nothing is answered. Good for a week of evidence before enforcing.
 - **seatbelt**: asks before what cannot be undone (a push, a delete, a credential
   file, a CI definition, a shell send such as `curl` or `scp`). Web reads are never
   asked about, and on the way out only a recognised credential shape is refused, so
-  other data can still leave through a web request. Everything else is left to
-  Claude Code.
+  other data can still leave through a web request. It also asks about a tool nobody
+  has decided on (an MCP tool nobody granted, for one), and refuses a tool switched
+  Off in the console. Everything else is left to Claude Code.
 - **off**: removes the hook. The log is kept for `/ai2rules:audit`.
+- **refresh**: adds to the guard's world the tools this harness names that the world
+  lacks, and changes nothing else. The plugin does it by itself when it installs a new
+  harness; `/ai2rules:status` says when it is needed by hand.
 
 Otherwise run exactly one command. With a Bash tool:
 

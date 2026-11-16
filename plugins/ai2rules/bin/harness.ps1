@@ -9,7 +9,11 @@
 #      binaries.lock pins.
 #   3. Otherwise: download the pinned tarball from registry.npmjs.org, check its
 #      SHA-512 against binaries.lock, and unpack the binary into (2) with the
-#      tar.exe Windows 10 and later ship. Another hash is refused.
+#      tar.exe Windows 10 and later ship. Another hash is refused. Then the new
+#      binary refreshes the guard's world (`harness guard refresh`, D147): a guard
+#      that is on gains the names its world lacks, and nothing else in it changes.
+#      Only at this moment, never in the hook. (AI2RULES_REGISTRY points the
+#      download at another registry, for the tests; the hash is still the lock's.)
 #
 # `connect` (D137) runs `harness-connect`, the fleet connector: a program of its
 # own, from the fleet application (ai2rules/app-console), which `harness connect`
@@ -48,7 +52,8 @@ function Read-Lock($path) {
 # Download an npm package, refuse it unless its SHA-512 is the pinned one, and put
 # one file of it at $dest. $true when installed; otherwise says why.
 function Install-Pinned($what, $pkg, $version, $want, $file, $dest) {
-    $url = "https://registry.npmjs.org/$pkg/-/$pkg-$version.tgz"
+    $registry = if ($env:AI2RULES_REGISTRY) { $env:AI2RULES_REGISTRY.TrimEnd('/') } else { 'https://registry.npmjs.org' }
+    $url = "$registry/$pkg/-/$pkg-$version.tgz"
     $tmp = Join-Path ([IO.Path]::GetTempPath()) ("ai2rules-" + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $tmp | Out-Null
     try {
@@ -90,9 +95,11 @@ function Install-Pinned($what, $pkg, $version, $want, $file, $dest) {
 $config = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $env:USERPROFILE '.claude' }
 # Run for Codex (`--host codex` among the arguments, D124): the binary lives under
 # Codex's home, the folder Codex's sandbox keeps read-only to a sandboxed agent.
+$isCodex = $false
 for ($i = 0; $i -lt $args.Count - 1; $i++) {
     if ($args[$i] -eq '--host' -and $args[$i + 1] -eq 'codex') {
         $config = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
+        $isCodex = $true
     }
 }
 $dir = Join-Path $config 'ai2rules\plugin\bin'
@@ -203,6 +210,21 @@ if (-not $want) {
 
 if (-not (Install-Pinned 'harness' "ai2rules-harness-$platform" $version $want 'harness.exe' $bin)) {
     exit 1
+}
+# A newer (or, after a channel switch, older) binary is in place: the guard's world
+# gains the names this one knows and the world lacks, and nothing else in it changes
+# (D147). It says something only when it added a name, left a broken world alone or
+# failed. An older binary that has no `refresh` refuses the argument (exit 2) and is
+# quiet here; status reports the lag. Nothing here stops the command itself.
+$refreshArgs = @('guard', 'refresh', '--quiet')
+if ($isCodex) { $refreshArgs += @('--host', 'codex') }
+$said = & {
+    # Native stderr under 'Stop' would throw in Windows PowerShell 5.1.
+    $ErrorActionPreference = 'Continue'
+    & $bin @refreshArgs 2>&1 | ForEach-Object { "$_" }
+}
+if ($LASTEXITCODE -ne 2) {
+    foreach ($line in @($said)) { if ($line) { Say $line } }
 }
 & $bin @args
 exit $LASTEXITCODE

@@ -12,7 +12,11 @@
 #      binaries.lock pins.
 #   3. Otherwise: download the pinned platform tarball from registry.npmjs.org,
 #      check its SHA-512 against binaries.lock, and unpack the binary into (2).
-#      Another hash is refused and nothing is installed.
+#      Another hash is refused and nothing is installed. Then the new binary
+#      refreshes the guard's world (`harness guard refresh`, D147): a guard that is
+#      on gains the names its world lacks, and nothing else in it changes. Only at
+#      this moment, never in the hook. (AI2RULES_REGISTRY points the download at
+#      another registry, for the tests; the hash is still the lock's.)
 #
 # `connect` (D137) runs `harness-connect`, the fleet connector: a program of its
 # own, from the fleet application (ai2rules/app-console), which `harness connect`
@@ -31,9 +35,11 @@ config="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 # Run for Codex (`--host codex` among the arguments, D124): the binary lives under
 # Codex's home, the folder Codex's sandbox keeps read-only to a sandboxed agent.
 prev=
+host=
 for a in "$@"; do
   if [ "$prev" = --host ] && [ "$a" = codex ]; then
     config="${CODEX_HOME:-$HOME/.codex}"
+    host="--host codex"
   fi
   prev="$a"
 done
@@ -64,7 +70,8 @@ pinned() { awk -v k="$2" '$1 == k { print $2 }' "$1"; }
 # pinned one, and put the file at <dest>. Returns 1, having said why, on failure.
 fetch_pinned() {
   local what="$1" pkg="$2" version="$3" want="$4" file="$5" dest="$6"
-  local url="https://registry.npmjs.org/$pkg/-/$pkg-$version.tgz"
+  local registry="${AI2RULES_REGISTRY:-https://registry.npmjs.org}"
+  local url="${registry%/}/$pkg/-/$pkg-$version.tgz"
   local tmp got
   tmp="$(mktemp -d)"
   say "installing $what $version for $platform, once, from $url"
@@ -197,4 +204,14 @@ if [ -z "$want" ]; then
 fi
 
 fetch_pinned harness "ai2rules-harness-$platform" "$version" "$want" "$exe" "$bin" || exit 1
+# A newer (or, after a channel switch, older) binary is in place: the guard's world
+# gains the names this one knows and the world lacks, and nothing else in it changes
+# (D147). It says something only when it added a name, left a broken world alone or
+# failed. An older binary that has no `refresh` refuses the argument (exit 2) and is
+# quiet here; status reports the lag. Nothing here stops the command itself.
+# shellcheck disable=SC2086 # $host is empty or two words.
+if said="$("$bin" guard refresh --quiet $host 2>&1)"; then rc=0; else rc=$?; fi
+if [ "$rc" != 2 ] && [ -n "$said" ]; then
+  printf '%s\n' "$said" | while IFS= read -r line; do say "$line"; done
+fi
 exec "$bin" "$@"

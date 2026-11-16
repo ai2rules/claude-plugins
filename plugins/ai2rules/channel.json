@@ -1,0 +1,5 @@
+{
+  "about": "The channel this plugin was published to, and the fleet centre /ai2rules:connect uses when neither the organisation's managed settings nor your own fleet_centre option name one (D144). Written by scripts/publish-plugin.sh in ai2rules/kernel; empty in a checkout, so a plugin tried from one has no default centre.",
+  "channel": "next",
+  "fleet_centre": "https://fleet-staging.ai2rules.dev"
+}

@@ -1,6 +1,6 @@
 ---
 description: Connect this machine to your organisation's ai2rules fleet centre. You give your work email and confirm with one click on the page the centre mails you a link to; you are never asked for a key, token or password.
-argument-hint: "[your work email | stop]"
+argument-hint: "[your work email | stop | forget]"
 disable-model-invocation: true
 ---
 
@@ -12,13 +12,18 @@ to it; every decision about a tool call stays on this machine.
 
 The centre's address, from the plugin's configuration: `${user_config.fleet_centre}`
 
-If `$ARGUMENTS` is the word `stop`, go straight to "Stopping" below: stopping needs
-no address.
+That is the organisation's address (their managed settings) or the person's own
+setting, whichever Claude Code holds. When neither names one, the plugin's channel has
+a default (D144): the plugin from the `next` channel connects to the staging centre,
+the stable plugin to the production one.
 
-If that address is empty, or still reads as a placeholder starting with `${`, the
-machine may still be enrolled already (from a terminal, or under another plugin name),
-and then it needs no address: the enrollment keeps its centre. Go to "No address
-configured" below.
+If `$ARGUMENTS` is the word `stop`, go straight to "Stopping" below; if it is the word
+`forget`, go straight to "Forgetting". Neither needs an address.
+
+If that address is empty, or still reads as a placeholder starting with `${`, go to
+"No address configured" below. The machine may be enrolled already (from a terminal, or
+under another plugin name), and an enrollment keeps its centre: it outranks the
+channel's default, which is used only for a machine that is not enrolled.
 
 ## No address configured
 
@@ -32,11 +37,37 @@ bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --background
 powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --background
 ```
 
+Read its lines in this order, and take the first that fits:
+
+- It says this machine "joins the fleet by itself": a request made earlier still waits
+  for its confirmation. Do as the first bullet of step 1 says, using the centre the line
+  names.
 - It says "the connector runs in the background" or a connector is "already running":
   the machine is connected, with the centre it was enrolled with (the line names it).
   Do "So that the centre sees this machine" below first, using that centre. Relay its lines, and tell the person what step 1 says for a connected machine. Stop.
-- It says the machine "is not enrolled": tell the person the plugin does not know
-  their fleet centre yet, so it cannot enroll this machine: their admin sets it for the
+- It says the machine "is not enrolled": ask the plugin for its channel's default:
+
+  ```bash
+  bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" guard centre --plugin-root "${CLAUDE_PLUGIN_ROOT}"
+  ```
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" guard centre --plugin-root "${CLAUDE_PLUGIN_ROOT}"
+  ```
+
+  Other lines may come first (on the first run after an update the plugin says it
+  installs the harness, `ai2rules: installing …`). Look for the line that starts with
+  `Fleet centre: http`: the address after it, up to the next space, is the configured
+  address from here on, and the bracket after it says where it came from (the plugin's
+  channel default). Tell the person, in a few words, where the address came from, as
+  the bracket says (usually the default of the plugin's channel), and that
+  `/ai2rules:about` shows how to set another. Go on with
+  "The configured address" below.
+
+  If no such line comes (`Fleet centre: none`, or the harness does not know the
+  command): tell the person the plugin could not tell their fleet centre (no default for
+  its channel: it was tried from a checkout, or its harness is older), so it cannot
+  enroll this machine: their admin sets it for the
   organisation (managed settings, `pluginConfigs` → the plugin's name → `fleet_centre`),
   or they set it themselves with `/plugin configure` and the plugin's name (the "Fleet
   centre" option, an `https://` address their admin gives them), and restart Claude
@@ -103,8 +134,9 @@ Read its lines in this order, and take the first that fits:
 - It says "the connector runs in the background" or a connector is "already running":
   the machine is connected. Do "So that the centre sees this machine" below first. Relay its lines. Tell the person it stays connected while
   this computer is on, that after a restart they run `/ai2rules:connect` again (no new
-  mail is needed then), and that `/ai2rules:connect stop` ends the connection on this
-  machine. Stop.
+  mail is needed then), that `/ai2rules:connect stop` ends the connection on this
+  machine, and that `/ai2rules:connect forget` also removes the enrollment from it.
+  Stop.
 - It says the machine "is not enrolled": go to step 2. If it also says the last request
   "ended without this machine joining", tell the person why first, in its words (the
   link expired or was already used, or too many attempts), then go to step 2.
@@ -112,8 +144,9 @@ Read its lines in this order, and take the first that fits:
   the fleet has moved. Tell the person the machine is still enrolled with the old
   centre, and ask, in so many words: "Should I enroll this machine with <CENTRE>? It
   takes your work email and one confirmation in a mail." with the configured address in
-  place of <CENTRE>. Wait for the answer. On yes, go to step 2. Once the new enrollment
-  is made, the old connector stops by itself.
+  place of <CENTRE>. Wait for the answer. On yes, go to step 2. Once the new enrollment is made, the
+  old connector stops by itself. On no, keep the machine with the centre it is enrolled
+  with: run the command under "No address configured" and go on as it says there.
 - It says the admin "disconnected this machine": tell the person so, and ask whether
   to connect it again. On yes, go to step 2.
 - Anything else: relay it word for word and stop.
@@ -151,7 +184,8 @@ the result, and only once in this conversation:
    logs every tool call and blocks nothing, so the fleet centre sees what the agents do.
    It applies to Claude Code sessions started from now on." If the `Guard:` line says
    `observe` or `seatbelt`, leave it as it is: never change a mode the person chose.
-2. Start the console in the background (it says "already runs" if it does):
+2. Start the console in the background (it says "already runs" if it does, and replaces
+   one of an older release):
 
    ```bash
    bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" console --background
@@ -282,11 +316,53 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/h
   ends the connection on this machine only until they run `/ai2rules:connect` again
   (no new mail or code is needed then). It does not disconnect the
   machine for good: the machine stays enrolled and the centre still lists it; that is
-  their admin's revoke on the fleet page. Then stop.
+  their admin's revoke on the fleet page; `/ai2rules:connect forget` also removes the
+  enrollment from this machine. Then stop.
 - It says "no connector is running", or that the connector "has ended by itself":
   tell the person no connector runs on this machine now, so there was no connection to
   stop (a withdrawn request, above, is still worth saying). Stop.
 - Anything else (it could not stop the connector): relay it word for word and stop.
+
+## Forgetting
+
+Only when `$ARGUMENTS` is `forget`. It stops the connector as "Stopping" does, and also
+removes this machine's enrollment (its token and centre) from this machine. Run:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/bin/harness.sh" connect --forget
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/bin/harness.ps1" connect --forget
+```
+
+Go through its lines in order:
+
+- A line says a request "is withdrawn", or that a request waiting in `enroll.json`
+  "could not be read, is removed": a request was still waiting for its confirmation, and
+  it is cancelled now. Tell the person so, then go on.
+- A line says "connect: stopped" this machine's connector for a centre, that "no
+  connector was running", or that the connector "has ended by itself": relay it, then go
+  on.
+- It says it "forgot this machine's enrollment with" a centre, or that it "removed this
+  machine's enrollment, which could not be read": relay its lines. Tell the
+  person three things: this machine no longer connects, and its token is gone from it;
+  it is forgotten only on this machine, so the centre still lists the machine until
+  their admin revokes it on the fleet page (or until it enrolls again, which replaces
+  the old card); and joining again with `/ai2rules:connect` mails a new link. Stop.
+- It says "nothing to forget" or "nothing more to forget": this machine was not
+  enrolled. Tell the person so (a withdrawn request or a stopped connector, above, is
+  still worth saying). Stop.
+- It says "the enrollment stays": relay its lines word for word. Nothing beyond a
+  withdrawn request was forgotten. If a line says a connector still runs and to "end it
+  by hand", tell the person to end the process that line names first, then run
+  `/ai2rules:connect forget` again. Otherwise (a wait for a confirmation still runs),
+  tell them they can run `/ai2rules:connect forget` again in a minute. Stop.
+- It says "unexpected argument" about `--forget`: the connector this plugin installed
+  predates `forget`. Relay it, and tell the person to update the plugin (`/plugin`, then
+  restart Claude Code) and run `/ai2rules:connect forget` again; meanwhile
+  `/ai2rules:connect stop` ends the connection. Stop.
+- Anything else: relay it word for word and stop.
 
 ## If you are Codex, not Claude Code
 

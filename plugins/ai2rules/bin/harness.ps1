@@ -161,6 +161,20 @@ if ($args.Count -gt 0 -and $args[0] -ceq 'connect') {
     }
     $rest = @()
     if ($args.Count -gt 1) { $rest = $args[1..($args.Count - 1)] }
+    # `connect --background` with no --email, --code or --wait is the skill's look at
+    # this machine (/ai2rules:connect, step 1). "Not enrolled" is an answer there, not a
+    # failure: the connector says it with exit 2, which Claude Code shows as a failed
+    # command on the way to a successful connect (AI2-291). That one answer exits 0
+    # here; every other exit code, and every other command, passes through unchanged.
+    $enrolling = @($rest | Where-Object { "$_" -cmatch '^--(email|code)(=|$)|^--(wait|stop|forget)$' })
+    if (($rest -ccontains '--background') -and $enrolling.Count -eq 0) {
+        $said = @(& $cBin @rest)
+        $rc = $LASTEXITCODE
+        foreach ($line in $said) { [Console]::Out.WriteLine("$line") }
+        $notEnrolled = @($said | Where-Object { "$_".StartsWith('connect: this machine is not enrolled') })
+        if ($rc -eq 2 -and $notEnrolled.Count -gt 0) { exit 0 }
+        exit $rc
+    }
     & $cBin @rest
     exit $LASTEXITCODE
 }

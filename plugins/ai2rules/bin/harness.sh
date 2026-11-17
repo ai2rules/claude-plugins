@@ -158,6 +158,27 @@ if [ "${1:-}" = connect ]; then
   if [ -n "$harness_version" ] && [ "$harness_version" != pending ]; then
     export AI2RULES_HARNESS_VERSION="$harness_version"
   fi
+  # `connect --background` with no --email, --code or --wait is the skill's look at
+  # this machine (/ai2rules:connect, step 1). "Not enrolled" is an answer there, not a
+  # failure: the connector says it with exit 2, which Claude Code shows as a failed
+  # command on the way to a successful connect (AI2-291). That one answer exits 0
+  # here; every other exit code, and every other command, passes through unchanged.
+  background=
+  enrolling=
+  for a in "$@"; do
+    case "$a" in
+      --background) background=1 ;;
+      --email | --email=* | --code | --code=* | --wait | --stop | --forget) enrolling=1 ;;
+    esac
+  done
+  if [ -n "$background" ] && [ -z "$enrolling" ]; then
+    if said="$("$connect_bin" "$@")"; then rc=0; else rc=$?; fi
+    if [ -n "$said" ]; then printf '%s\n' "$said"; fi
+    if [ "$rc" = 2 ] && printf '%s\n' "$said" | grep -q '^connect: this machine is not enrolled'; then
+      exit 0
+    fi
+    exit "$rc"
+  fi
   exec "$connect_bin" "$@"
 fi
 

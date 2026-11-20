@@ -218,7 +218,7 @@ if ($version -eq 'pending' -or $want -eq 'pending') {
 }
 if (-not $want) {
     Say "no prebuilt harness $version for $platform. (A release candidate is built for Windows x64 only;"
-    Say "stable releases have linux-x64, darwin-x64, darwin-arm64 and windows-x64.)"
+    Say "stable releases have linux-x64 and windows-x64.)"
     exit 1
 }
 

@@ -22,7 +22,7 @@ have the commands.
 | `/ai2rules:guard observe` | Every tool call is decided and logged. Nothing is blocked. | the hook entries in `~/.claude/settings.json`, `~/.claude/ai2rules/plugin/` |
 | `/ai2rules:guard seatbelt` | Claude Code asks before a push, a delete, a credential read, a CI definition or a shell send (`curl`, `scp`, `gh pr create`, mail). Web reads are never asked about, and on the way out only a recognised credential shape is refused. It also asks about a tool nobody has decided on (one its world does not name, such as an MCP tool nobody granted), and refuses a tool switched Off in the console. | same |
 | `/ai2rules:guard off` | Removes the hook. The log stays for the audit. | same |
-| `/ai2rules:about` | Shows what is installed and where ai2rules is configured: the plugin version, the harness version it pins and the one installed, where the binary lives, the guard's mode, which settings files (yours, the project's, the project-local and the managed policy) register an ai2rules hook, and each decision log with its line count. Read from files; it proves nothing about the session (that is `/ai2rules:status`). Where Claude Code runs mods (2.1.287 and later) it prints with no model turn (measured on Windows with Claude Code 2.1.318; the Linux and macOS route not yet run against a real Claude Code). | nothing |
+| `/ai2rules:about` | Shows what is installed and where ai2rules is configured: the plugin version, the harness version it pins and the one installed, where the binary lives, the guard's mode, which settings files (yours, the project's, the project-local and the managed policy) register an ai2rules hook, and each decision log with its line count. Read from files; it proves nothing about the session (that is `/ai2rules:status`). Where Claude Code runs mods (2.1.287 and later) it prints with no model turn (measured on Windows with Claude Code 2.1.318; the Linux route not yet run against a real Claude Code). | nothing |
 | `/ai2rules:help` | Lists these commands on one page. Fixed text: it runs nothing. Where Claude Code runs mods it prints with no model turn (measured on Windows with Claude Code 2.1.322, in print mode). | nothing |
 | `/ai2rules:connect [email \| stop \| forget]` | Only if your organisation runs an ai2rules fleet centre: connects this machine to it. You give your work email and confirm with one click on the page the centre mails you a link to, pressing the check code Claude names (an older centre gives a six-digit code instead, which your admin reads to you); no key, token or password is asked or shown. The centre's address comes from your admin's managed settings, else from the plugin's *Fleet centre* option (`/plugin configure ai2rules@ai2rules`, or `ai2rules@ai2rules-next` if you installed the test channel), else from the plugin's channel: the stable plugin connects to `https://fleet.ai2rules.dev`, the test channel to `https://fleet-staging.ai2rules.dev`. Nothing connects until you run the command. The centre can see this machine's console and push policy; decisions stay on the machine. `/ai2rules:connect stop` ends the connection on this machine; it stays enrolled (the next `/ai2rules:connect` needs no new mail or code), and only your admin disconnects it for good. `/ai2rules:connect forget` also removes the enrollment from this machine (the centre still lists it until your admin revokes it; joining again mails a new link). | `~/.claude/ai2rules/fleet/` (the machine's token, readable by you only); the fleet connector `harness-connect`, installed once beside `harness` |
 | `/ai2rules:status` | Proves whether the hook is live in this session: its own tool call must pass through the hook. Then checks that every part of ai2rules on this machine fits together (the plugin, the harness, the guard and its world, the policy console, the fleet connector, the centre, the enrollment) and, for each part that does not, says the command that fixes it. Shows recent decisions, and names any other ai2rules hook registered for the session (one `harness init` put in a project, your user settings or the managed policy), with whether this call passed through it. | nothing |
@@ -36,9 +36,10 @@ The commands run `harness`, the ai2rules kernel, a single binary. The first comm
 you run downloads it once from the npm registry
 (`ai2rules-harness-<platform>-<version>.tgz`), checks its SHA-512 against
 `binaries.lock` in this plugin, and installs it in `~/.claude/ai2rules/plugin/bin/`.
-A package with another hash is refused. No Node.js or npm is needed: Git Bash, Linux
-and macOS use `curl`, `tar` and `sha512sum`; Windows without Git Bash uses
-PowerShell and the `tar.exe` Windows ships.
+A package with another hash is refused. No Node.js or npm is needed: Git Bash and Linux
+use `curl`, `tar` and `sha512sum`; Windows without Git Bash uses PowerShell and the
+`tar.exe` Windows ships. ai2rules runs on Windows x64 and Linux x64; macOS is not
+supported, and there the commands stop and say so.
 
 `/ai2rules:connect` needs one more program, the fleet connector `harness-connect`
 (`harness connect` runs it). It is installed the same way the first time you connect:
@@ -53,7 +54,7 @@ path. `AI2RULES_HARNESS` is read too, after it; that one is also the pin a proje
 
 `hooks/commands.ts` is a Claude Code *mod*: a small TypeScript module that registers
 `/ai2rules:about` and `/ai2rules:help` and answers them itself, so the answers need no model
-turn (measured on Windows with Claude Code 2.1.318 and 2.1.322; the Linux and macOS route not
+turn (measured on Windows with Claude Code 2.1.318 and 2.1.322; the Linux route not
 yet run against a real Claude Code). `about` runs the same bootstrap as the other commands;
 `help` is fixed text and runs nothing. The module hooks no tool call and holds no logic of its
 own. Where mods do not run, the skills of the same names answer instead, through the
@@ -83,7 +84,7 @@ What to know before relying on it:
 - **Input typed into a running program is not seen.** Codex sends the hook nothing for
   it, so an interactive program (a shell, a REPL) the policy does not ask about becomes a
   shell the hook never sees.
-- **It needs a POSIX login shell on macOS and Linux.** With `pwsh`, `nu` or `xonsh` as
+- **It needs a POSIX login shell on Linux.** With `pwsh`, `nu` or `xonsh` as
   `$SHELL` the hook does not run, and status says NOT LIVE.
 - **Not yet run end to end on a real Codex install.** The hook was measured
   on codex-cli 0.167 with a project hooks file; that Codex reads the user-level

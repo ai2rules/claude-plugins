@@ -39,7 +39,7 @@ and a suggested world under `suggested-world/`.
    away, without asking: they ran the audit to read it. Open the file itself: never
    upload or publish it, and do not start a server for it, because the report stays
    on this machine. If you have no such tool (a terminal), offer to open it in the
-   system browser instead (`start "" "<path>"` on Windows, `open` on macOS,
+   system browser instead (`start "" "<path>"` on Windows,
    `xdg-open` on Linux). Mention that
    `/ai2rules:guard observe` starts recording every decision from now on, and
    `/ai2rules:status` proves whether it is live.
@@ -69,7 +69,7 @@ The person approves it. On Windows (PowerShell):
 powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin root>/bin/harness.ps1" audit --host codex
 ```
 
-On macOS and Linux:
+On Linux:
 
 ```bash
 bash "<plugin root>/bin/harness.sh" audit --host codex

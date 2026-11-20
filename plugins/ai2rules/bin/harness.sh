@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Bootstrap for the ai2rules plugin (D117): run the pinned `harness` binary,
-# installing it first if it is not there. For Git Bash, Linux and macOS;
-# `harness.ps1` beside it does the same on Windows without Git Bash.
+# installing it first if it is not there. For Git Bash and Linux;
+# `harness.ps1` beside it does the same on Windows without Git Bash. macOS is not
+# supported (D169): there it stops with one sentence that says so, and runs nothing.
 #
 #   1. AI2RULES_HARNESS_FOR_PLUGIN, else AI2RULES_HARNESS, when it names a file:
 #      used as is (development builds, platforms npm has no binary for). The
@@ -49,7 +50,10 @@ say() { printf 'ai2rules: %s\n' "$*" >&2; }
 
 case "$(uname -s)" in
   Linux) os=linux ;;
-  Darwin) os=darwin ;;
+  Darwin)
+    say "macOS is not supported; ai2rules runs on Windows x64 and Linux x64."
+    exit 1
+    ;;
   MINGW* | MSYS* | CYGWIN*) os=windows ;;
   *) os=unknown ;;
 esac
@@ -218,7 +222,7 @@ if [ "$version" = pending ] || [ "$want" = pending ]; then
 fi
 if [ -z "$want" ]; then
   say "no prebuilt harness $version for $platform. (A release candidate is built for Windows x64 only;"
-  say "stable releases have linux-x64, darwin-x64, darwin-arm64 and windows-x64.)"
+  say "stable releases have linux-x64 and windows-x64.)"
   say "Ask for it at https://github.com/ai2rules/kernel-concepts/issues. With a harness binary of your own,"
   say "point the plugin at it:  export AI2RULES_HARNESS_FOR_PLUGIN=/absolute/path/to/harness"
   exit 1

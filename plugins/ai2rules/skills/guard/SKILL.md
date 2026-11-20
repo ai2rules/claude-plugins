@@ -67,7 +67,7 @@ On Windows (PowerShell):
 powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin root>/bin/harness.ps1" guard observe --host codex
 ```
 
-On macOS and Linux:
+On Linux:
 
 ```bash
 bash "<plugin root>/bin/harness.sh" guard observe --host codex

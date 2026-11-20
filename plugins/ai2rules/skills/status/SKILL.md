@@ -54,7 +54,7 @@ it is sandboxed. On Windows (PowerShell):
 echo ai2rules-probe-N; powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin root>/bin/harness.ps1" guard status --host codex --probe N
 ```
 
-On macOS and Linux:
+On Linux:
 
 ```bash
 echo ai2rules-probe-N; bash "<plugin root>/bin/harness.sh" guard status --host codex --probe N
